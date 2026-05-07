@@ -38,7 +38,8 @@ public class MainActivity extends AppCompatActivity {
         // Configurar el botón flotante (por ahora solo mostrará un aviso)
         FloatingActionButton fab = findViewById(R.id.fabAddArticulo);
         fab.setOnClickListener(v -> {
-            Toast.makeText(MainActivity.this, "Próximamente: Pantalla para añadir artículo", Toast.LENGTH_SHORT).show();
+            android.content.Intent intent = new android.content.Intent(MainActivity.this, com.oscar.mintory.ui.AddArticuloActivity.class);
+            startActivity(intent);
         });
     }
 }
