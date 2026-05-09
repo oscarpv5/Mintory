@@ -48,6 +48,11 @@ public class ArticuloAdapter extends RecyclerView.Adapter<ArticuloAdapter.Articu
         return listaArticulos.size();
     }
 
+    // Metodo para obtener un artículo específico de la lista.
+    public Articulo getArticuloEn(int posicion) {
+        return listaArticulos.get(posicion);
+    }
+
     // Metodo vital para actualizar la lista cuando la Base de Datos cambie
     public void setArticulos(List<Articulo> articulos) {
         this.listaArticulos = articulos;

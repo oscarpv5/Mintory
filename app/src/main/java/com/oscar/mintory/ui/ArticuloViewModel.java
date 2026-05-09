@@ -25,4 +25,8 @@ public class ArticuloViewModel extends AndroidViewModel {
     public void insertar(Articulo articulo) {
         repository.insertar(articulo);
     }
+
+    public void eliminar(Articulo articulo) {
+        repository.eliminar(articulo);
+    }
 }
