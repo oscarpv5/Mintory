@@ -16,8 +16,8 @@ public class Articulo implements Serializable {
     private String caratulaUrl;
     private String fechaAdquisicion;
     private float valoracion;
-    private String estado; // Ej: "Leído", "Pendiente de jugar"
-    private String tipo;   // Ej: "Libro", "Videojuego"
+    private String estado;
+    private String tipo;
 
     // Constructor
     public Articulo(String titulo, String autorODesarrolladora, String anioPublicacion, String caratulaUrl, String fechaAdquisicion, float valoracion, String estado, String tipo) {

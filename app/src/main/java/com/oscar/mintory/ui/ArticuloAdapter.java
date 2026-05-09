@@ -16,6 +16,7 @@ import java.util.List;
 public class ArticuloAdapter extends RecyclerView.Adapter<ArticuloAdapter.ArticuloHolder> {
 
     private List<Articulo> listaArticulos = new ArrayList<>();
+    private List<Articulo> listaCompleta = new ArrayList<>();
     private OnItemClickListener listener;
 
     public interface OnItemClickListener {
@@ -73,7 +74,35 @@ public class ArticuloAdapter extends RecyclerView.Adapter<ArticuloAdapter.Articu
 
     // Metodo vital para actualizar la lista cuando la Base de Datos cambie
     public void setArticulos(List<Articulo> articulos) {
-        this.listaArticulos = articulos;
+        this.listaCompleta = new ArrayList<>(articulos);
+        this.listaArticulos = new ArrayList<>(articulos); // Inicialmente mostramos todos
+        notifyDataSetChanged();
+    }
+    public void filtrar(String textoBusqueda, String categoria) {
+        List<Articulo> listaFiltrada = new ArrayList<>();
+
+        // Nos aseguramos de que los parámetros no sean nulos para evitar errores
+        String busquedaSegura = (textoBusqueda != null) ? textoBusqueda.toLowerCase() : "";
+        String categoriaSegura = (categoria != null) ? categoria : "Todos";
+
+        for (Articulo articulo : listaCompleta) {
+            // Obtenemos los datos del artículo con seguridad
+            String tituloArticulo = (articulo.getTitulo() != null) ? articulo.getTitulo().toLowerCase() : "";
+            String tipoArticulo = (articulo.getTipo() != null) ? articulo.getTipo() : "";
+
+            // Comprobamos si el título coincide
+            boolean coincideTexto = tituloArticulo.contains(busquedaSegura);
+
+            // Comprobamos la categoría (evitando el error de equals con nulos)
+            boolean coincideCategoria = categoriaSegura.equalsIgnoreCase("Todos") ||
+                    tipoArticulo.trim().equalsIgnoreCase(categoriaSegura.trim());
+
+            if (coincideTexto && coincideCategoria) {
+                listaFiltrada.add(articulo);
+            }
+        }
+
+        this.listaArticulos = listaFiltrada;
         notifyDataSetChanged();
     }
 
