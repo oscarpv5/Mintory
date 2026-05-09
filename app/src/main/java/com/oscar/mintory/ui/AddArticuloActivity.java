@@ -26,13 +26,13 @@ import retrofit2.Response;
 /**
  * Actividad encargada de la búsqueda de artículos (libros y videojuegos)
  * mediante APIs externas y su posterior inserción en la base de datos local.
- * Ahora muestra múltiples resultados en un RecyclerView.
+ * Ahora muestra múltiples resultados en un RecyclerView y permite navegación hacia atrás.
  */
 public class AddArticuloActivity extends AppCompatActivity {
 
     // Componentes de la interfaz de usuario
     private TextInputEditText etBuscador;
-    private Button btnBuscar;
+    private Button btnBuscar, btnVolver;
     private RadioButton radioLibro;
 
     // Componentes para la lista de resultados
@@ -47,12 +47,18 @@ public class AddArticuloActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_articulo);
 
+        // Activar la flecha de "Atrás" en la barra superior (Toolbar)
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
         // Inicializamos el ViewModel para gestionar la comunicación con Room
         articuloViewModel = new ViewModelProvider(this).get(ArticuloViewModel.class);
 
         // Enlazamos los componentes de la vista con nuestras variables de Java
         etBuscador = findViewById(R.id.etBuscador);
         btnBuscar = findViewById(R.id.btnBuscar);
+        btnVolver = findViewById(R.id.btnVolver); // NUEVO: Enlazamos el botón de volver
         radioLibro = findViewById(R.id.radioLibro);
 
         // --- CONFIGURACIÓN DEL RECYCLERVIEW ---
@@ -87,6 +93,20 @@ public class AddArticuloActivity extends AppCompatActivity {
                 Toast.makeText(this, "Por favor, escribe un título", Toast.LENGTH_SHORT).show();
             }
         });
+
+        // NUEVO: Configuramos el listener del botón de cancelar/volver
+        btnVolver.setOnClickListener(v -> {
+            finish(); // Cierra esta actividad y regresa a la anterior (MainActivity)
+        });
+    }
+
+    /**
+     * Metodo para hacer que la flecha de "Atrás" de la barra superior funcione
+     */
+    @Override
+    public boolean onSupportNavigateUp() {
+        finish(); // Cierra la actividad al pulsar la flecha de arriba
+        return true;
     }
 
     /**
