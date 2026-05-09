@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Mintory</string>
+    <string-array name="estados_array">
+        <item>Pendiente</item>
+        <item>En curso</item>
+        <item>Terminado</item>
+    </string-array>
+
 </resources>
