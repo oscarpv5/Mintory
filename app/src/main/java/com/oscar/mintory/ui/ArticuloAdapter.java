@@ -48,7 +48,7 @@ public class ArticuloAdapter extends RecyclerView.Adapter<ArticuloAdapter.Articu
         return listaArticulos.size();
     }
 
-    // Método vital para actualizar la lista cuando la Base de Datos cambie
+    // Metodo vital para actualizar la lista cuando la Base de Datos cambie
     public void setArticulos(List<Articulo> articulos) {
         this.listaArticulos = articulos;
         notifyDataSetChanged();

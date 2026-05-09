@@ -21,7 +21,7 @@ public interface ArticuloDao {
     @Delete
     void eliminar(Articulo articulo);
 
-    // Obtener todo el inventario
+    // Obtener el inventario
     @Query("SELECT * FROM articulos ORDER BY titulo ASC")
     LiveData<List<Articulo>> obtenerTodos();
 
