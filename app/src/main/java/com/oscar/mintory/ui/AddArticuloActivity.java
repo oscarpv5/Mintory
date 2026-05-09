@@ -2,13 +2,12 @@ package com.oscar.mintory.ui;
 
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.RadioButton;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
-import com.bumptech.glide.Glide;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.oscar.mintory.R;
 import com.oscar.mintory.data.api.RetrofitClient;
@@ -18,6 +17,8 @@ import com.oscar.mintory.model.api.BookItem;
 import com.oscar.mintory.model.api.GoogleBooksResponse;
 import com.oscar.mintory.model.api.GameItem;
 import com.oscar.mintory.model.api.RawgResponse;
+import java.util.ArrayList;
+import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -25,19 +26,21 @@ import retrofit2.Response;
 /**
  * Actividad encargada de la búsqueda de artículos (libros y videojuegos)
  * mediante APIs externas y su posterior inserción en la base de datos local.
+ * Ahora muestra múltiples resultados en un RecyclerView.
  */
 public class AddArticuloActivity extends AppCompatActivity {
 
     // Componentes de la interfaz de usuario
     private TextInputEditText etBuscador;
-    private TextView txtPreviewTitulo, txtPreviewAutor;
-    private ImageView imgPreview;
-    private Button btnBuscar, btnGuardar;
+    private Button btnBuscar;
     private RadioButton radioLibro;
+
+    // Componentes para la lista de resultados
+    private RecyclerView recyclerResultados;
+    private ResultadoAdapter resultadoAdapter;
 
     // Gestión de datos y persistencia
     private ArticuloViewModel articuloViewModel;
-    private Articulo articuloTemporal;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,12 +52,26 @@ public class AddArticuloActivity extends AppCompatActivity {
 
         // Enlazamos los componentes de la vista con nuestras variables de Java
         etBuscador = findViewById(R.id.etBuscador);
-        txtPreviewTitulo = findViewById(R.id.txtPreviewTitulo);
-        txtPreviewAutor = findViewById(R.id.txtPreviewAutor);
-        imgPreview = findViewById(R.id.imgPreview);
         btnBuscar = findViewById(R.id.btnBuscar);
-        btnGuardar = findViewById(R.id.btnGuardar);
         radioLibro = findViewById(R.id.radioLibro);
+
+        // --- CONFIGURACIÓN DEL RECYCLERVIEW ---
+        // Enlazamos el RecyclerView del XML y le asignamos un diseño lineal
+        recyclerResultados = findViewById(R.id.recyclerResultados);
+        recyclerResultados.setLayoutManager(new LinearLayoutManager(this));
+
+        // Inicializamos el adaptador y lo conectamos al RecyclerView
+        resultadoAdapter = new ResultadoAdapter();
+        recyclerResultados.setAdapter(resultadoAdapter);
+
+        // Configuramos el listener del adaptador para cuando el usuario pulse "+ Añadir" en un resultado
+        resultadoAdapter.setOnItemClickListener(articuloSeleccionado -> {
+            // Insertamos el artículo seleccionado en la base de datos local
+            articuloViewModel.insertar(articuloSeleccionado);
+            Toast.makeText(this, "¡" + articuloSeleccionado.getTitulo() + " añadido!", Toast.LENGTH_SHORT).show();
+            // Finalizamos la actividad para volver al catálogo principal
+            finish();
+        });
 
         // Configuramos el listener del botón de búsqueda
         btnBuscar.setOnClickListener(v -> {
@@ -62,60 +79,42 @@ public class AddArticuloActivity extends AppCompatActivity {
             if (!consulta.isEmpty()) {
                 // Determinamos qué servicio de API consultar según la opción seleccionada
                 if (radioLibro.isChecked()) {
-                    buscarLibro(consulta);
+                    buscarLibros(consulta);
                 } else {
-                    buscarVideojuego(consulta);
+                    buscarVideojuegos(consulta);
                 }
             } else {
                 Toast.makeText(this, "Por favor, escribe un título", Toast.LENGTH_SHORT).show();
             }
         });
-
-        // Configuramos el listener para guardar el artículo seleccionado
-        btnGuardar.setOnClickListener(v -> {
-            if (articuloTemporal != null) {
-                // Realizamos la inserción a través del ViewModel
-                articuloViewModel.insertar(articuloTemporal);
-                Toast.makeText(this, "¡Añadido a tu colección!", Toast.LENGTH_SHORT).show();
-
-                // Finalizamos la actividad para volver al catálogo principal
-                finish();
-            } else {
-                Toast.makeText(this, "Primero debes buscar un artículo", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     /**
-     * Realiza una petición asíncrona a la API de Google Books para obtener datos de libros.
+     * Realiza una petición asíncrona a la API de Google Books para obtener múltiples libros.
      * @param query Título o ISBN del libro a buscar.
      */
-    private void buscarLibro(String query) {
+    private void buscarLibros(String query) {
         RetrofitClient.getApi().searchBooks(query).enqueue(new Callback<GoogleBooksResponse>() {
             @Override
             public void onResponse(Call<GoogleBooksResponse> call, Response<GoogleBooksResponse> response) {
-                if (response.isSuccessful() && response.body() != null && response.body().items != null && !response.body().items.isEmpty()) {
+                if (response.isSuccessful() && response.body() != null && response.body().items != null) {
 
-                    // Extraemos la información del primer resultado obtenido
-                    BookItem item = response.body().items.get(0);
+                    List<Articulo> listaResultados = new ArrayList<>();
 
-                    String titulo = item.volumeInfo.title;
-                    String autor = (item.volumeInfo.authors != null) ? item.volumeInfo.authors.get(0) : "Autor desconocido";
-                    String fecha = (item.volumeInfo.publishedDate != null) ? item.volumeInfo.publishedDate : "N/A";
-                    String imagen = (item.volumeInfo.imageLinks != null) ? item.volumeInfo.imageLinks.thumbnail.replace("http:", "https:") : "";
+                    // Recorremos la lista de resultados de la API para transformarlos en objetos Articulo
+                    for (BookItem item : response.body().items) {
+                        String titulo = item.volumeInfo.title;
+                        String autor = (item.volumeInfo.authors != null) ? item.volumeInfo.authors.get(0) : "Autor desconocido";
+                        String fecha = (item.volumeInfo.publishedDate != null) ? item.volumeInfo.publishedDate : "N/A";
+                        String imagen = (item.volumeInfo.imageLinks != null) ? item.volumeInfo.imageLinks.thumbnail.replace("http:", "https:") : "";
 
-                    // Actualizamos los elementos visuales de la previsualización
-                    txtPreviewTitulo.setText(titulo);
-                    txtPreviewAutor.setText(autor);
-
-                    if (!imagen.isEmpty()) {
-                        Glide.with(AddArticuloActivity.this).load(imagen).into(imgPreview);
-                    } else {
-                        imgPreview.setImageResource(android.R.drawable.ic_menu_gallery);
+                        // Creamos el objeto con categoría "Libro" y lo añadimos a la lista temporal
+                        Articulo nuevoLibro = new Articulo(titulo, autor, fecha, imagen, "Hoy", 0.0f, "Pendiente", "Libro");
+                        listaResultados.add(nuevoLibro);
                     }
 
-                    // Creamos el objeto de nuestra entidad Articulo con categoría "Libro"
-                    articuloTemporal = new Articulo(titulo, autor, fecha, imagen, "Hoy", 0.0f, "Pendiente", "Libro");
+                    // Enviamos la lista completa al adaptador para que la muestre
+                    resultadoAdapter.setResultados(listaResultados);
 
                 } else {
                     Toast.makeText(AddArticuloActivity.this, "No se encontraron libros", Toast.LENGTH_SHORT).show();
@@ -130,38 +129,34 @@ public class AddArticuloActivity extends AppCompatActivity {
     }
 
     /**
-     * Realiza una petición asíncrona a la API de RAWG para obtener datos de videojuegos.
+     * Realiza una petición asíncrona a la API de RAWG para obtener múltiples videojuegos.
      * @param query Título del videojuego a buscar.
      */
-    private void buscarVideojuego(String query) {
+    private void buscarVideojuegos(String query) {
         // Clave de API necesaria para autenticar las peticiones en RAWG
         String apiKey = "c3741dbe6d7d4c66a82df4e756959492";
 
         RawgRetrofitClient.getApi().searchGames(apiKey, query).enqueue(new Callback<RawgResponse>() {
             @Override
             public void onResponse(Call<RawgResponse> call, Response<RawgResponse> response) {
-                if (response.isSuccessful() && response.body() != null && response.body().results != null && !response.body().results.isEmpty()) {
+                if (response.isSuccessful() && response.body() != null && response.body().results != null) {
 
-                    // Extraemos la información del primer videojuego de la lista
-                    GameItem item = response.body().results.get(0);
+                    List<Articulo> listaResultados = new ArrayList<>();
 
-                    String titulo = item.name;
-                    String desarrolladora = "Estudio desconocido";
-                    String fecha = (item.released != null) ? item.released : "N/A";
-                    String imagen = (item.background_image != null) ? item.background_image : "";
+                    // Recorremos los resultados obtenidos de la API RAWG
+                    for (GameItem item : response.body().results) {
+                        String titulo = item.name;
+                        String desarrolladora = "Estudio desconocido"; // RAWG requiere otra petición para la desarrolladora, usamos un genérico
+                        String fecha = (item.released != null) ? item.released : "N/A";
+                        String imagen = (item.background_image != null) ? item.background_image : "";
 
-                    // Mostramos los datos en la interfaz
-                    txtPreviewTitulo.setText(titulo);
-                    txtPreviewAutor.setText(desarrolladora);
-
-                    if (!imagen.isEmpty()) {
-                        Glide.with(AddArticuloActivity.this).load(imagen).into(imgPreview);
-                    } else {
-                        imgPreview.setImageResource(android.R.drawable.ic_menu_gallery);
+                        // Creamos el objeto con categoría "Videojuego" y lo añadimos a la lista temporal
+                        Articulo nuevoJuego = new Articulo(titulo, desarrolladora, fecha, imagen, "Hoy", 0.0f, "Pendiente", "Videojuego");
+                        listaResultados.add(nuevoJuego);
                     }
 
-                    // Creamos el objeto de nuestra entidad Articulo con categoría "Videojuego"
-                    articuloTemporal = new Articulo(titulo, desarrolladora, fecha, imagen, "Hoy", 0.0f, "Pendiente", "Videojuego");
+                    // Actualizamos el adaptador con la lista de videojuegos encontrados
+                    resultadoAdapter.setResultados(listaResultados);
 
                 } else {
                     Toast.makeText(AddArticuloActivity.this, "No se encontraron videojuegos", Toast.LENGTH_SHORT).show();
