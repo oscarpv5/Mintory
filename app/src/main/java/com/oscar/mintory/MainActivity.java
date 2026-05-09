@@ -29,6 +29,18 @@ public class MainActivity extends AppCompatActivity {
         final ArticuloAdapter adapter = new ArticuloAdapter();
         recyclerView.setAdapter(adapter);
 
+        // Escuchamos el clic en los elementos del catálogo
+        adapter.setOnItemClickListener(articuloClicado -> {
+            // Preparamos el "viaje" (Intent) hacia la pantalla de Detalles
+            android.content.Intent intent = new android.content.Intent(MainActivity.this, com.oscar.mintory.ui.DetalleArticuloActivity.class);
+
+            // Empaquetamos nuestro artículo en el Intent usando una clave ("articulo_extra")
+            intent.putExtra("articulo_extra", articuloClicado);
+
+            // Iniciamos la nueva pantalla
+            startActivity(intent);
+        });
+
         // Inicializar el ViewModel y observar los datos de la Base de Datos
         articuloViewModel = new ViewModelProvider(this).get(ArticuloViewModel.class);
         articuloViewModel.getTodosLosArticulos().observe(this, articulos -> {

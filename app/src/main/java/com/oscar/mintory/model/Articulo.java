@@ -1,10 +1,11 @@
 package com.oscar.mintory.model;
 
+import java.io.Serializable;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "articulos")
-public class Articulo {
+public class Articulo implements Serializable {
 
     @PrimaryKey(autoGenerate = true)
     private int id;

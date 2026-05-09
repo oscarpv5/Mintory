@@ -16,6 +16,15 @@ import java.util.List;
 public class ArticuloAdapter extends RecyclerView.Adapter<ArticuloAdapter.ArticuloHolder> {
 
     private List<Articulo> listaArticulos = new ArrayList<>();
+    private OnItemClickListener listener;
+
+    public interface OnItemClickListener {
+        void onItemClick(Articulo articulo);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
 
     @NonNull
     @Override
@@ -35,12 +44,21 @@ public class ArticuloAdapter extends RecyclerView.Adapter<ArticuloAdapter.Articu
         holder.txtAutor.setText(articuloActual.getAutorODesarrolladora());
         holder.txtEstado.setText(articuloActual.getEstado());
 
-        // Usamos la librería Glide para descargar y mostrar la carátula de forma eficiente
+        // Usamos la librería Glide para descargar y mostrar la carátula
         Glide.with(holder.itemView.getContext())
                 .load(articuloActual.getCaratulaUrl())
-                // Si falla o está cargando, mostramos un icono por defecto
                 .placeholder(android.R.drawable.ic_menu_gallery)
                 .into(holder.imgCaratula);
+
+        // Configuramos qué pasa cuando hacemos clic en toda la tarjeta (itemView)
+        holder.itemView.setOnClickListener(v -> {
+            // Comprobamos que el listener exista y que la posición sea válida
+            int posicionActual = holder.getAdapterPosition();
+            if (listener != null && posicionActual != RecyclerView.NO_POSITION) {
+                // Le pasamos el artículo clicado a nuestra MainActivity
+                listener.onItemClick(listaArticulos.get(posicionActual));
+            }
+        });
     }
 
     @Override
