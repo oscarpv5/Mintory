@@ -10,15 +10,40 @@
     android:background="#F5F5F5"
     tools:context=".ui.AddArticuloActivity">
 
+    <RadioGroup
+        android:id="@+id/radioGroupTipo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <RadioButton
+            android:id="@+id/radioLibro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="32dp"
+            android:checked="true"
+            android:text="Libros (Google)" />
+
+        <RadioButton
+            android:id="@+id/radioJuego"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Videojuegos (RAWG)" />
+    </RadioGroup>
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textInputLayoutSearch"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="Buscar libro por título o ISBN..."
+        android:layout_marginTop="16dp"
+        android:hint="Buscar título..."
         app:layout_constraintEnd_toStartOf="@+id/btnBuscar"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/radioGroupTipo"
         android:layout_marginEnd="8dp">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -65,7 +90,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:text="Título del libro..."
+                android:text="Título..."
                 android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -78,7 +103,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
-                android:text="Autor..."
+                android:text="Autor / Desarrolladora..."
                 android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/imgPreview"
